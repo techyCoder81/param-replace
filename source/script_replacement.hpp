@@ -191,13 +191,17 @@ int LoadModule_intercept(nn::ro::Module* module, void const* unk1, void* unk2,
 }
 
 
+namespace app::lua_bind {
+    namespace WorkModule {
+        float get_param_float_replace(u64 module_accessor, u64 param_type, u64 param_hash) {
 
-float get_param_float_replace(u64 module_accessor, u64 param_type, u64 param_hash) {
 
+            u64 work_module = load_module(module_accessor, 0x50);
+            float (*get_param_float)(u64, u64, u64) = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
+            return get_param_float(work_module, param_type, param_hash);
+        }
 
-    u64 work_module = load_module(module_accessor, 0x50);
-    float (*get_param_float)(u64, u64, u64) = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
-    return get_param_float(work_module, param_type, param_hash);
+    }
 }
 /*
 float get_param_float_replace(u64 boma, u64 param_group, u64 param_hash) {
