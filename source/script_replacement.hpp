@@ -196,7 +196,16 @@ int get_param_int_replace(u64 boma, u64 param_group, u64 param_hash) {
     return get_param_int_orig(boma, param_group, param_hash);
 }
 
+float get_param_float_replace(u64 module_accessor, u64 param_type, u64 param_hash) {
+    bool replace;
+    float ret = Shield::get_param_float(module_accessor, param_type, param_hash, replace);
+    if (replace) return ret;
 
+    u64 work_module = load_module(module_accessor, 0x50);
+    float (*get_param_float)(u64, u64, u64) = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
+    return get_param_float(work_module, param_type, param_hash);
+}
+/*
 float get_param_float_replace(u64 boma, u64 param_group, u64 param_hash) {
     u8 fighter_category = (u8)(*(u32*)(boma + 8) >> 28);
 	int fighter_kind = app::utility::get_kind(boma);
@@ -225,10 +234,14 @@ float get_param_float_replace(u64 boma, u64 param_group, u64 param_hash) {
     u64 work_module = load_module(boma, 0x50);
     float (*get_param_float_orig)(u64, u64, u64) = (float (*)(u64,u64,u64))load_module_impl(work_module, 0x240);
     return get_param_float_orig(boma, param_group, param_hash);
-}
+}*/
 
 void script_replacement() {
-    SaltySD_function_replace_sym("_ZN3app8lua_bind32WorkModule__get_param_float_implEPNS_26BattleObjectModuleAccessorEmm", (u64) &get_param_float_replace);
+    //SaltySD_function_replace_sym("_ZN3app8lua_bind32WorkModule__get_param_float_implEPNS_26BattleObjectModuleAccessorEmm", (u64) &get_param_float_replace);
+
     SaltySD_function_replace_sym("_ZN3lib8L2CAgent15clear_lua_stackEv", (u64)&clear_lua_stack_replace);
+    SaltySD_function_replace_sym(
+        "_ZN3app8lua_bind32WorkModule__get_param_float_implEPNS_26BattleObjectModuleAccessorEmm",
+        (u64)&WorkModule::get_param_float_replace);
     SaltySDCore_ReplaceImport("_ZN2nn2ro10LoadModuleEPNS0_6ModuleEPKvPvmi", (void*)LoadModule_intercept);
 }
