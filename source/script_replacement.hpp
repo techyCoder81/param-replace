@@ -190,16 +190,10 @@ int LoadModule_intercept(nn::ro::Module* module, void const* unk1, void* unk2,
     return ret;
 }
 
-int get_param_int_replace(u64 boma, u64 param_group, u64 param_hash) {
-    u64 work_module = load_module(boma, 0x50);
-    int (*get_param_int_orig)(u64, u64, u64) = (int (*)(u64,u64,u64))load_module_impl(work_module, 0x220);
-    return get_param_int_orig(boma, param_group, param_hash);
-}
+
 
 float get_param_float_replace(u64 module_accessor, u64 param_type, u64 param_hash) {
-    bool replace;
-    float ret = Shield::get_param_float(module_accessor, param_type, param_hash, replace);
-    if (replace) return ret;
+
 
     u64 work_module = load_module(module_accessor, 0x50);
     float (*get_param_float)(u64, u64, u64) = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
