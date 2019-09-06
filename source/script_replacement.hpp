@@ -191,22 +191,11 @@ int LoadModule_intercept(nn::ro::Module* module, void const* unk1, void* unk2,
 }
 
 
-namespace app::lua_bind {
-    namespace WorkModule {
-        float get_param_float_replace(u64 module_accessor, u64 param_type, u64 param_hash) {
 
-
-            u64 work_module = load_module(module_accessor, 0x50);
-            float (*get_param_float)(u64, u64, u64) = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
-            return get_param_float(work_module, param_type, param_hash);
-        }
-
-    }
-}
 /*
-float get_param_float_replace(u64 boma, u64 param_group, u64 param_hash) {
-    u8 fighter_category = (u8)(*(u32*)(boma + 8) >> 28);
-	int fighter_kind = app::utility::get_kind(boma);
+float get_param_float_replace(u64 module_accessor, u64 param_group, u64 param_hash) {
+    u8 fighter_category = (u8)(*(u32*)(module_accessor + 8) >> 28);
+	int fighter_kind = app::utility::get_kind(module_accessor);
 	if (param_group == hash40("battle_object")){
 			if (param_hash == hash40("damage_frame_mul")                       ) return 0.65;
 			if (param_hash == hash40("damage_level1")                          ) return 18;
@@ -229,17 +218,75 @@ float get_param_float_replace(u64 boma, u64 param_group, u64 param_hash) {
 			if (param_hash == hash40("damage_fly_length_mul_max")              ) return 1;
 			if (param_hash == hash40("damage_fly_length_mul_min")              ) return 1;
 	}
-    u64 work_module = load_module(boma, 0x50);
+    u64 work_module = load_module(module_accessor, 0x50);
     float (*get_param_float_orig)(u64, u64, u64) = (float (*)(u64,u64,u64))load_module_impl(work_module, 0x240);
-    return get_param_float_orig(boma, param_group, param_hash);
+    return get_param_float_orig(module_accessor, param_group, param_hash);
+
 }*/
+
+float (*get_param_float_original)(u64, u64, u64) = NULL;// = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
+
+
+float get_param_float_replace(u64 module_accessor, u64 param_group, u64 param_hash) {
+    u8 fighter_category = (u8)(*(u32*)(module_accessor + 8) >> 28);
+	int fighter_kind = app::utility::get_kind(module_accessor);
+    DamageModule::add_damage(module_accessor, 0.1, 0);
+    //return 0;
+	//if (param_group == hash40("battle_object")){
+			if (param_hash == hash40("damage_frame_mul")                       ) return 0.65;
+			if (param_hash == hash40("damage_level1")                          ) return 18;
+			if (param_hash == hash40("damage_level2")                          ) return 26;
+			if (param_hash == hash40("damage_level3")                          ) return 48;
+			if (param_hash == hash40("damage_speed_mul")                       ) return 0.025;
+			if (param_hash == hash40("damage_speed_limit")                     ) return 100;
+	//}
+	//if (param_group == hash40("common")){
+			if (param_hash == hash40("dash_escape_frame")                      ) return 1;
+			if (param_hash == 0x1e4a1922e2                                     ) return 0.3;
+			if (param_hash == 0x19cc62560a                                     ) return 0.9;
+			if (param_hash == 0x1b597dee73                                     ) return 0.9;
+			if (param_hash == hash40("hit_stop_delay_flick_mul")               ) return 5;
+			if (param_hash == 0x15fc7882a0                                     ) return 999;
+
+			if (param_hash == hash40("damage_air_brake")                       ) return 0.037;
+			if (param_hash == 0x21afe6cdd1                                     ) return 0;
+			if (param_hash == hash40("damage_fly_speed_y_mul")                 ) return 7.5;
+			if (param_hash == 0x19b02043cc                                     ) return 18;
+			if (param_hash == hash40("damage_fly_length_mul_max")              ) return 1;
+			if (param_hash == hash40("damage_fly_length_mul_min")              ) return 1;
+	//}
+
+    //u64 work_module = load_module(module_accessor, 0x50);
+    //float (*get_param_float)(u64, u64, u64) = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
+    return get_param_float_original(module_accessor, param_group, param_hash);
+}
+
+
+u64 __init_settings(u64 boma, u64 situation_kind, int param_3, u64 param_4, u64 param_5,bool param_6,int param_7,int param_8,int param_9,int param_10) {
+
+  	u64 fix = param_4;
+  	u64 status_module = load_module(boma, 0x40);
+  	u64 (*init_settings)(u64, u64, u64, u64, u64, u64, u64, u64) =
+        (u64 (*)(u64, u64, u64, u64, u64, u64, u64, u64))(load_module_impl(status_module, 0x1c8));
+
+    u8 fighter_category = (u8)(*(u32*)(boma + 8) >> 28);
+    if(get_param_float_original==NULL && fighter_category == BATTLE_OBJECT_CATEGORY_FIGHTER){
+        u64 work_module = load_module(boma, 0x50);
+        get_param_float_original = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
+        *((u64*)(LOAD64(work_module) + 0x240)) = (float (*)(u64, u64, u64))get_param_float_replace;
+    }
+
+    //ORIGINAL CALL
+    return init_settings(status_module, situation_kind, param_3,
+  					   fix, param_5, param_6, param_7, param_8);
+
+}
 
 void script_replacement() {
     //SaltySD_function_replace_sym("_ZN3app8lua_bind32WorkModule__get_param_float_implEPNS_26BattleObjectModuleAccessorEmm", (u64) &get_param_float_replace);
+//SaltySD_function_replace_sym("_ZN3app8lua_bind40ControlModule__get_command_flag_cat_implEPNS_26BattleObjectModuleAccessorEi", (u64) &__get_command_flag_cat);
+SaltySD_function_replace_sym("_ZN3app8lua_bind32StatusModule__init_settings_implEPNS_26BattleObjectModuleAccessorENS_13SituationKindEijNS_20GroundCliffCheckKindEbiiii", (u64) &__init_settings);
 
-    SaltySD_function_replace_sym("_ZN3lib8L2CAgent15clear_lua_stackEv", (u64)&clear_lua_stack_replace);
-    SaltySD_function_replace_sym(
-        "_ZN3app8lua_bind32WorkModule__get_param_float_implEPNS_26BattleObjectModuleAccessorEmm",
-        (u64)&WorkModule::get_param_float_replace);
+
     SaltySDCore_ReplaceImport("_ZN2nn2ro10LoadModuleEPNS0_6ModuleEPKvPvmi", (void*)LoadModule_intercept);
 }
