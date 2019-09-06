@@ -7,6 +7,15 @@
 #include "useful/raygun_printer.h"
 #include "useful/useful.h"
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+//#include <switch/result.h>
+//#include <stdlib.h>
+//#include <switch/runtime/devices/socket.h>
+//#include <unistd.h>
+#include <cerrno>
+
 #include "saltysd/nn_ro.h"
 
 #include "acmd_wrapper.h"
@@ -191,6 +200,36 @@ int LoadModule_intercept(nn::ro::Module* module, void const* unk1, void* unk2,
 }
 
 
+void sendPacket(u64 boma){
+    int sockfd;
+    int error;
+    struct sockaddr_in servaddr;
+    //char buffer[100];
+    char hello[32] = "pog";
+    int result;
+
+	int error2;
+	char resultBuffer[10];
+	char resultBuffer2[10];
+	char resultBuffer3[10];
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    error = errno;
+    // Creating socket file descriptor
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(7658);
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+
+
+    result = sendto(sockfd, (char *)hello, strlen(hello),
+        MSG_DONTWAIT, (struct sockaddr *) &servaddr,
+            sizeof(servaddr));
+	error2 = errno;
+    //close(sockfd);
+	snprintf(resultBuffer, 20, "%d,%d,%d,%d", sockfd, error, result, error2);
+
+	print_string(boma,resultBuffer);
+}
+
 
 /*
 float get_param_float_replace(u64 module_accessor, u64 param_group, u64 param_hash) {
@@ -263,7 +302,8 @@ float get_param_float_replace(u64 module_accessor, u64 param_group, u64 param_ha
 
 
 u64 __init_settings(u64 boma, u64 situation_kind, int param_3, u64 param_4, u64 param_5,bool param_6,int param_7,int param_8,int param_9,int param_10) {
-
+    //sendPacket(boma);
+    DamageModule::add_damage(boma, 0.1, 0);
   	u64 fix = param_4;
   	u64 status_module = load_module(boma, 0x40);
   	u64 (*init_settings)(u64, u64, u64, u64, u64, u64, u64, u64) =
@@ -274,6 +314,7 @@ u64 __init_settings(u64 boma, u64 situation_kind, int param_3, u64 param_4, u64 
         u64 work_module = load_module(boma, 0x50);
         get_param_float_original = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
         *((u64*)(LOAD64(work_module) + 0x240)) = (float (*)(u64, u64, u64))get_param_float_replace;
+        DamageModule::add_damage(boma, 420.0, 0);
     }
 
     //ORIGINAL CALL
@@ -283,6 +324,7 @@ u64 __init_settings(u64 boma, u64 situation_kind, int param_3, u64 param_4, u64 
 }
 
 void script_replacement() {
+
     //SaltySD_function_replace_sym("_ZN3app8lua_bind32WorkModule__get_param_float_implEPNS_26BattleObjectModuleAccessorEmm", (u64) &get_param_float_replace);
 //SaltySD_function_replace_sym("_ZN3app8lua_bind40ControlModule__get_command_flag_cat_implEPNS_26BattleObjectModuleAccessorEi", (u64) &__get_command_flag_cat);
 SaltySD_function_replace_sym("_ZN3app8lua_bind32StatusModule__init_settings_implEPNS_26BattleObjectModuleAccessorENS_13SituationKindEijNS_20GroundCliffCheckKindEbiiii", (u64) &__init_settings);

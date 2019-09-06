@@ -88,6 +88,11 @@ main.o: \
  S:/UltimateEnvironment/code-mod-example/param-replace/code-mod-framework/framework/include/useful/crc32.h \
  S:/UltimateEnvironment/code-mod-example/param-replace/code-mod-framework/framework/include/useful/useful.h \
  S:/UltimateEnvironment/code-mod-example/param-replace/code-mod-framework/framework/include/useful/raygun_printer.h \
+ C:/devkitPro/libnx/include/sys/socket.h \
+ C:/devkitPro/libnx/include/sys/_iovec.h \
+ C:/devkitPro/libnx/include/sys/_sockaddr_storage.h \
+ C:/devkitPro/libnx/include/netinet/in.h \
+ C:/devkitPro/libnx/include/arpa/inet.h \
  S:/UltimateEnvironment/code-mod-example/param-replace/code-mod-framework/framework/include/saltysd/nn_ro.h \
  S:/UltimateEnvironment/code-mod-example/param-replace/code-mod-framework/framework/include/acmd_wrapper.h \
  S:/UltimateEnvironment/code-mod-example/param-replace/code-mod-framework/framework/include/app/sv_animcmd.h \
@@ -317,6 +322,16 @@ S:/UltimateEnvironment/code-mod-example/param-replace/code-mod-framework/framewo
 S:/UltimateEnvironment/code-mod-example/param-replace/code-mod-framework/framework/include/useful/useful.h:
 
 S:/UltimateEnvironment/code-mod-example/param-replace/code-mod-framework/framework/include/useful/raygun_printer.h:
+
+C:/devkitPro/libnx/include/sys/socket.h:
+
+C:/devkitPro/libnx/include/sys/_iovec.h:
+
+C:/devkitPro/libnx/include/sys/_sockaddr_storage.h:
+
+C:/devkitPro/libnx/include/netinet/in.h:
+
+C:/devkitPro/libnx/include/arpa/inet.h:
 
 S:/UltimateEnvironment/code-mod-example/param-replace/code-mod-framework/framework/include/saltysd/nn_ro.h:
 
