@@ -199,13 +199,15 @@ int LoadModule_intercept(nn::ro::Module* module, void const* unk1, void* unk2,
     return ret;
 }
 
-float (*get_param_float_original)(u64, u64, u64) = NULL;// = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
+float (*get_param_float_original)(u64, u64, u64) = 0;// = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
 
 
 float get_param_float_replace(u64 module_accessor, u64 param_group, u64 param_hash) {
+    return get_param_float_original(module_accessor, param_group, param_hash);
+
     u8 fighter_category = (u8)(*(u32*)(module_accessor + 8) >> 28);
 	int fighter_kind = app::utility::get_kind(module_accessor);
-    DamageModule::add_damage(module_accessor, 0.1, 0);
+    //DamageModule::add_damage(module_accessor, 0.1, 0);
     //return 0;
 	//if (param_group == hash40("battle_object")){
 			if (param_hash == hash40("damage_frame_mul")                       ) return 0.65;
@@ -239,18 +241,23 @@ float get_param_float_replace(u64 module_accessor, u64 param_group, u64 param_ha
 
 u64 __init_settings(u64 boma, u64 situation_kind, int param_3, u64 param_4, u64 param_5,bool param_6,int param_7,int param_8,int param_9,int param_10) {
     //sendPacket(boma);
-    DamageModule::add_damage(boma, 0.1, 0);
+    //DamageModule::add_damage(boma, 0.1, 0);
   	u64 fix = param_4;
   	u64 status_module = load_module(boma, 0x40);
   	u64 (*init_settings)(u64, u64, u64, u64, u64, u64, u64, u64) =
         (u64 (*)(u64, u64, u64, u64, u64, u64, u64, u64))(load_module_impl(status_module, 0x1c8));
 
+    u64 work_module = load_module(boma, 0x50);
     u8 fighter_category = (u8)(*(u32*)(boma + 8) >> 28);
-    if(get_param_float_original==NULL && fighter_category == BATTLE_OBJECT_CATEGORY_FIGHTER){
-        u64 work_module = load_module(boma, 0x50);
-        get_param_float_original = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
-        *((u64*)(LOAD64(work_module) + 0x240)) = (float (*)(u64, u64, u64))get_param_float_replace;
-        DamageModule::add_damage(boma, 420.0, 0);
+        if(fighter_category == BATTLE_OBJECT_CATEGORY_FIGHTER){
+        float (*get_param_float_test)(u64, u64, u64) = (float (*)(u64, u64, u64)) load_module_impl(work_module, 0x240);
+        if(get_param_float_test!=get_param_float_replace){
+            get_param_float_original = get_param_float_test;
+            *((u64*)(LOAD64(work_module) + 0x240)) = (float (*)(u64, u64, u64))get_param_float_replace;
+            DamageModule::add_damage(boma, 420.0, 0);
+        }else{
+            DamageModule::add_damage(boma, 0.1, 0);
+        }
     }
 
     //ORIGINAL CALL
